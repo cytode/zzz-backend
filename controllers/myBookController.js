@@ -27,7 +27,7 @@ function myBookController() {
 			}
 		});
 	};
-	this.wordAdd = function(req , res , next){
+	this.wordAddToDictionary = function(req , res , next){
 		const word = {};
 		word.word = req.params.word;
 		word.phonetic = req.params.phonetic;
@@ -53,9 +53,21 @@ function myBookController() {
 						code: 401,
 						message: '单词已存在'
 					});
-					dictionary.update({'word': word.word},{$set:{'removed': false, 'createTime': word.createTime}});
 					return next();
 				}
+			}else{
+				return next(err);
+			}
+		});
+	};
+	this.wordAddToBook = function(req, res, next){
+		const word = req.params.word;
+		res.header('Access-Control-Allow-Credentials', true);
+		const createTime = (new Date()).getTime();
+		dictionary.update({'word': word},{$set:{'removed': false, 'createTime': createTime}}, function(err, success){
+			if(success){
+				res.send(200 , word);
+				return next();
 			}else{
 				return next(err);
 			}
@@ -75,7 +87,6 @@ function myBookController() {
 				return next(err);
 			}
 		});
-
 	};
 	this.wordFind = function(req, res, next) {
 		const word = req.params.word;
