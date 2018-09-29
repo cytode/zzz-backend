@@ -4,28 +4,42 @@ function myBookController() {
 	const dictionary = dbConfig.dictionary;
 	this.wordList = function(req, res , next){
 		res.header('Access-Control-Allow-Credentials', true);
-		// words.find().limit(20).sort({postedOn : -1} , function(err , success){
-		//     console.log('Response success '+success);
-		//     console.log('Response error '+err);
-		//     if(success){
-		//         res.send(200 , success);
-		//         return next();
-		//     }else{
-		//         return next(err);
-		//     }
-		//
-		// });
-
-
-		dictionary.find({"removed": false}).sort({'createTime': -1}, function(err , success){
-			if(success){
-				res.send(200 , success);
-				// 调用处理链中的下一个处理器
-				return next();
-			}else{
-				return next(err);
+		const pageSize = 50;
+		let currentPage = req.params.currentPage;
+		dictionary.runCommand('count', function (err, success) {
+			const totalItem = success.n;
+			const totalPage = Math.floor(totalItem / pageSize);
+			if (currentPage > totalPage) {
+				currentPage = totalPage;
 			}
+			const skipNumber = pageSize * (currentPage - 1);
+			dictionary.find({'removed': false}).sort({'createTime': -1}).skip(skipNumber).limit(pageSize, function(err, success){
+				if(success){
+					console.log('success', success);
+					res.send(200 , {
+						list: success,
+						totalPage: totalPage,
+						totalItem: totalItem
+					});
+					return next();
+				}else{
+					return next(err);
+				}
+			});
 		});
+
+
+
+
+		// dictionary.find({"removed": false}).sort({'createTime': -1}, function(err , success){
+		// 	if(success){
+		// 		res.send(200 , success);
+		// 		// 调用处理链中的下一个处理器
+		// 		return next();
+		// 	}else{
+		// 		return next(err);
+		// 	}
+		// });
 	};
 	this.wordAddToDictionary = function(req , res , next){
 		const word = {};
