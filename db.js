@@ -1,6 +1,14 @@
 const config = require('./config');
-const mongojs = require("mongojs");
-const db = mongojs(config.dbPath, ['farm']);
-module.exports = {
-		dictionary: db.collection("dictionary")
-};
+const mongoose = require('mongoose');
+
+mongoose.connect(config.dbPath, { useNewUrlParser: true});
+const db = mongoose.connection;
+
+db.on('error', function(err){
+	console.log('error occured from db');
+});
+db.once('open', function dbOpen() {
+	console.log('successfully opened the db');
+});
+
+exports.mongoose = mongoose;
